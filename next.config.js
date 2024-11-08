@@ -10,15 +10,8 @@ const nextConfig = {
       defaultLocale: 'zh-TW',
       localeDetection: false
     },
-    serverRuntimeConfig: {
-      GEMINI_API_KEY: process.env.GEMINI_API_KEY,
-    },
-    publicRuntimeConfig: {
-      // 這裡放置可以公開的配置
-    },
     experimental: {
       serverActions: {
-        allowedOrigins: ["*"],  // 根據需要設置允許的域名
         bodySizeLimit: '2mb'
       }
     },

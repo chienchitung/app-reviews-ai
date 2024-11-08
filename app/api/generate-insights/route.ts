@@ -1,16 +1,13 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { NextResponse } from 'next/server';
 import type { Keyword } from '@/types/feedback';
-import getConfig from 'next/config';
 
-// 獲取伺服器端運行時配置
-const { serverRuntimeConfig } = getConfig();
-const apiKey = serverRuntimeConfig.GEMINI_API_KEY;
+// 直接使用 process.env
+const apiKey = process.env.GEMINI_API_KEY;
 
 // 增強錯誤日誌
 console.log('環境檢查:', {
   NODE_ENV: process.env.NODE_ENV,
-  hasServerConfig: !!serverRuntimeConfig,
   apiKeyExists: !!apiKey,
   apiKeyLength: apiKey?.length || 0
 });
