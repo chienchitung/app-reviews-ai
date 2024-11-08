@@ -1,13 +1,31 @@
-import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { NextResponse } from 'next/server';
 import type { Keyword } from '@/types/feedback';
+import getConfig from 'next/config';
 
-// API Key 驗證
-if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY.length < 10) {
-  throw new Error('無效的 Gemini API Key');
+// 獲取伺服器端運行時配置
+const { serverRuntimeConfig } = getConfig();
+const apiKey = serverRuntimeConfig.GEMINI_API_KEY;
+
+// 增強錯誤日誌
+console.log('環境檢查:', {
+  NODE_ENV: process.env.NODE_ENV,
+  hasServerConfig: !!serverRuntimeConfig,
+  apiKeyExists: !!apiKey,
+  apiKeyLength: apiKey?.length || 0
+});
+
+if (!apiKey) {
+  console.error('API Key 未設置');
+  throw new Error('Gemini API Key 未設置');
 }
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+if (apiKey.length < 10) {
+  console.error('API Key 長度不正確');
+  throw new Error('Gemini API Key 格式不正確');
+}
+
+const genAI = new GoogleGenerativeAI(apiKey);
 
 export async function POST(request: Request) {
   try {
