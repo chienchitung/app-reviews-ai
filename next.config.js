@@ -2,7 +2,8 @@
 const nextConfig = {
     output: 'standalone',
     images: {
-      unoptimized: true
+      unoptimized: true,
+      domains: ['localhost']
     },
     i18n: {
       locales: ['zh-TW'],
