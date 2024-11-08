@@ -15,6 +15,9 @@ const nextConfig = {
         bodySizeLimit: '2mb'
       }
     },
+    env: {
+      GEMINI_API_KEY: process.env.GEMINI_API_KEY
+    },
     webpack: (config, { isServer }) => {
       if (!isServer) {
         config.resolve.fallback = {

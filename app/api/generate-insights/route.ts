@@ -2,30 +2,20 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { NextResponse } from 'next/server';
 import type { Keyword } from '@/types/feedback';
 
-// 直接使用 process.env
-const apiKey = process.env.GEMINI_API_KEY;
-
-// 增強錯誤日誌
-console.log('環境檢查:', {
-  NODE_ENV: process.env.NODE_ENV,
-  apiKeyExists: !!apiKey,
-  apiKeyLength: apiKey?.length || 0
-});
-
-if (!apiKey) {
-  console.error('API Key 未設置');
-  throw new Error('Gemini API Key 未設置');
-}
-
-if (apiKey.length < 10) {
-  console.error('API Key 長度不正確');
-  throw new Error('Gemini API Key 格式不正確');
-}
-
-const genAI = new GoogleGenerativeAI(apiKey);
+// 修改環境變數檢查邏輯，避免在建構時就拋出錯誤
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 export async function POST(request: Request) {
   try {
+    // 移動環境變數檢查到請求處理時
+    if (!process.env.GEMINI_API_KEY) {
+      console.error('API Key 未設置');
+      return NextResponse.json(
+        { error: 'API 配置錯誤' },
+        { status: 500 }
+      );
+    }
+
     const requestData = await request.json();
     
     // 驗證必要的數據是否存在
