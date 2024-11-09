@@ -29,6 +29,9 @@ const nextConfig = {
       }
       return config;
     },
+    serverRuntimeConfig: {
+        maxDuration: 10,
+    }
 }
 
 module.exports = nextConfig
