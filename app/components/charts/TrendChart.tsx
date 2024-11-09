@@ -34,15 +34,16 @@ export const MonthlyTrendChart = ({ data }: TrendChartProps) => {
     return acc;
   }, {} as Record<string, any>);
 
-  // 獲取所有不同的裝置類型
-  const devices = Array.from(new Set(data.map(item => item.device)));
-
   const chartData = Object.entries(monthlyData)
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([month, value]) => ({
       month,
+      total: value.total,
       ...value.devices
     }));
+
+  // 獲取所有不同的裝置類型
+  const devices = Array.from(new Set(data.map(item => item.device)));
 
   return (
     <div className="w-full h-full">
@@ -56,7 +57,26 @@ export const MonthlyTrendChart = ({ data }: TrendChartProps) => {
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="month" />
             <YAxis />
-            <Tooltip />
+            <Tooltip 
+              content={({ active, payload, label }) => {
+                if (active && payload && payload.length) {
+                  return (
+                    <div className="bg-white p-2 border border-gray-200 shadow-md">
+                      <p className="font-medium">{label}</p>
+                      <p className="text-gray-600">總評論數: {payload[0]?.payload.total}</p>
+                      {payload.map((entry) => (
+                        entry.dataKey !== 'total' && (
+                          <p key={entry.dataKey} style={{ color: entry.color }}>
+                            {entry.name}: {entry.value}
+                          </p>
+                        )
+                      ))}
+                    </div>
+                  );
+                }
+                return null;
+              }}
+            />
             <Legend 
               verticalAlign="top" 
               height={36}
@@ -66,7 +86,7 @@ export const MonthlyTrendChart = ({ data }: TrendChartProps) => {
                 key={device} 
                 dataKey={device} 
                 stackId="a"
-                fill={DEVICE_COLORS[device] || '#94A3B8'} // 使用預定義的顏色或預設灰色
+                fill={DEVICE_COLORS[device] || '#94A3B8'}
                 name={device}
               />
             ))}
@@ -79,43 +99,35 @@ export const MonthlyTrendChart = ({ data }: TrendChartProps) => {
 
 // 評分分布圖（按裝置區分）
 export const RatingDistributionChart = ({ data }: TrendChartProps) => {
-  const deviceGroups = data.reduce((acc, item) => {
-    if (!acc[item.device]) {
-      acc[item.device] = [];
+  const ratingDistribution = data.reduce((acc, item) => {
+    const rating = Math.floor(item.rating);
+    if (!acc[rating]) {
+      acc[rating] = {
+        total: 0,
+        devices: {}
+      };
     }
-    acc[item.device].push(item);
+    acc[rating].total += 1;
+    acc[rating].devices[item.device] = (acc[rating].devices[item.device] || 0) + 1;
     return acc;
-  }, {} as Record<string, Feedback[]>);
-
-  const ratingDistribution = Object.entries(deviceGroups).map(([device, feedbacks]) => {
-    const ratings = feedbacks.reduce((acc, item) => {
-      const rating = Math.floor(item.rating);
-      acc[rating] = (acc[rating] || 0) + 1;
-      return acc;
-    }, {} as Record<number, number>);
-
-    return {
-      device,
-      ratings,
-      total: feedbacks.length
-    };
-  });
+  }, {} as Record<number, { total: number; devices: Record<string, number> }>);
 
   const chartData = Array.from({ length: 5 }, (_, i) => i + 1).map(rating => ({
     rating: `${rating}星`,
+    total: ratingDistribution[rating]?.total || 0,
     ...Object.fromEntries(
-      ratingDistribution.map(({ device, ratings }) => [
+      Object.entries(ratingDistribution[rating]?.devices || {}).map(([device, count]) => [
         device,
-        (ratings[rating] || 0)
+        count
       ])
     )
   }));
 
-  const devices = Object.keys(deviceGroups);
+  const devices = Array.from(new Set(data.map(item => item.device)));
 
   return (
     <div className="w-full h-full">
-      <h3 className="text-center text-sm font-medium mb-4">評分分布 (按裝置分)</h3>
+      <h3 className="text-center text-sm font-medium mb-4">評分分布</h3>
       <div className="w-full h-[calc(100%-2rem)]">
         <ResponsiveContainer>
           <BarChart
@@ -125,7 +137,26 @@ export const RatingDistributionChart = ({ data }: TrendChartProps) => {
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="rating" />
             <YAxis />
-            <Tooltip />
+            <Tooltip 
+              content={({ active, payload, label }) => {
+                if (active && payload && payload.length) {
+                  return (
+                    <div className="bg-white p-2 border border-gray-200 shadow-md">
+                      <p className="font-medium">{label}</p>
+                      <p className="text-gray-600">總評論數: {payload[0]?.payload.total}</p>
+                      {payload.map((entry) => (
+                        entry.dataKey !== 'total' && (
+                          <p key={entry.dataKey} style={{ color: entry.color }}>
+                            {entry.name}: {entry.value}
+                          </p>
+                        )
+                      ))}
+                    </div>
+                  );
+                }
+                return null;
+              }}
+            />
             <Legend 
               verticalAlign="top" 
               height={36}
@@ -133,8 +164,9 @@ export const RatingDistributionChart = ({ data }: TrendChartProps) => {
             {devices.map((device) => (
               <Bar 
                 key={device} 
-                dataKey={device} 
-                fill={DEVICE_COLORS[device] || '#94A3B8'} // 使用預定義的顏色或預設灰色
+                dataKey={device}
+                stackId="a"
+                fill={DEVICE_COLORS[device] || '#94A3B8'}
                 name={device}
               />
             ))}
