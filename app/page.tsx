@@ -199,7 +199,7 @@ export default function Home() {
           <div className="flex items-center">
             <LogoSVG />
             <span className="ml-3 text-2xl font-bold" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-              用戶評論分析平台 (文字探勘與知識工程期末專題)
+              用戶評論分析平台 (Beta版)
             </span>
           </div>
         </nav>
